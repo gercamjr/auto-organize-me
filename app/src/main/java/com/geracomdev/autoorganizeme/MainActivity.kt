@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.paddingFromBaseline
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -35,12 +36,7 @@ class MainActivity : ComponentActivity() {
                 Surface(modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background)
                 {
-                    GreetingImage(message = stringResource(R.string.happy_birthday_text), from = stringResource(
-                        R.string.signature_text
-                    ),
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(8.dp))
+                    AutoOrganizeMeWelcome(modifier = Modifier)
                 }
             }
         }
@@ -48,50 +44,19 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun GreetingText(message: String, from: String, modifier: Modifier = Modifier) {
-    Column(
-        verticalArrangement = Arrangement.Center,
-        modifier = modifier) {
-        Text(
-            text = message,
-            fontSize = 100.sp,
-            lineHeight = 116.sp,
-            textAlign = TextAlign.Center
-        )
-        Text(
-            text = from,
-            fontSize = 36.sp,
-            modifier = Modifier
-                .padding(16.dp)
-                .align(alignment = Alignment.CenterHorizontally)
-        )
+fun AutoOrganizeMeWelcome(modifier: Modifier) {
+    Column(modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
+        Row {
+            Image(painterResource(R.drawable.el_valiente), contentDescription = "Logo")
+        }
+        Row(modifier.paddingFromBaseline(top = 45.dp)) {
+            Text("Auto Organize Me", fontSize = 36.sp, color = MaterialTheme.colorScheme.inversePrimary)
+        }
     }
 }
 
 @Composable
-fun GreetingImage(message: String, from: String, modifier: Modifier = Modifier) {
-    val image = painterResource(R.drawable.androidparty)
-    Box(modifier) {
-        Image(
-            painter = image,
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            alpha = 0.5F
-        )
-        GreetingText(
-            message = message,
-            from = from,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(8.dp)
-        )
-    }
-}
-
-@Preview(showBackground = true, showSystemUi = true, name = "The View")
-@Composable
-fun BirthdayCardPreview() {
-    AutoOrganizeMeTheme {
-        GreetingImage("Happy Birthday!!!", from = "From G")
-    }
+@Preview
+fun AutoOrganizeMeWelcomePreview() {
+    AutoOrganizeMeWelcome(modifier = Modifier)
 }
