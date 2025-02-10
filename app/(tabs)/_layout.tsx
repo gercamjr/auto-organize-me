@@ -27,9 +27,27 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name='about'
+        name='clients'
         options={{
-          title: 'About',
+          title: 'Clients',
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? 'information-circle' : 'information-circle-outline'} color={color} size={24} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name='vehicles'
+        options={{
+          title: 'Vehicles',
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? 'information-circle' : 'information-circle-outline'} color={color} size={24} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name='jobs'
+        options={{
+          title: 'Jobs',
           tabBarIcon: ({ color, focused }) => (
             <Ionicons name={focused ? 'information-circle' : 'information-circle-outline'} color={color} size={24} />
           ),

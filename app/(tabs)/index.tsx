@@ -1,12 +1,19 @@
 import { Text, View, StyleSheet } from 'react-native'
 import { Link } from 'expo-router'
+import Ionicons from '@expo/vector-icons/Ionicons'
 
 export default function Index() {
   return (
     <View style={styles.container}>
       <Text style={styles.text}>Home screen</Text>
-      <Link href='/about' style={styles.button}>
-        Go to About screen
+      <Link href='/clients' style={styles.button}>
+        View Clients <Ionicons name='people' size={24} />
+      </Link>
+      <Link href='/vehicles' style={styles.button}>
+        View Vehicles <Ionicons name='car' size={24} />
+      </Link>
+      <Link href='/jobs' style={styles.button}>
+        View Jobs <Ionicons name='briefcase' size={24} />
       </Link>
     </View>
   )
