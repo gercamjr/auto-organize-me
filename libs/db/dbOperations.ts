@@ -1,5 +1,5 @@
 import db from './database'
-import { Clients, Vehicles, Jobs } from './types'
+import { Clients, Vehicles, Jobs } from '../types'
 
 // get clients
 export const getClients = async (): Promise<Clients[]> => {

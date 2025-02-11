@@ -1,8 +1,9 @@
+// app/(tabs)/clients/index.tsx
 import React, { useEffect, useState } from 'react'
 import { Text, View, StyleSheet, FlatList, Button } from 'react-native'
-import { getClients, addClient } from '../dbOperations'
-import { Clients } from '../types'
-import { Link } from 'expo-router'
+import { getClients, addClient } from '../../../libs/db/dbOperations'
+import { Clients } from '../../../libs/types'
+import { Href, Link } from 'expo-router'
 
 export default function ClientsScreen() {
   const [clients, setClients] = useState<Clients[]>([])
@@ -19,14 +20,14 @@ export default function ClientsScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.text}>Clients</Text>
-      <Link href='/add-client' style={styles.button}>
+      <Link href='/clients/add-client' style={styles.button}>
         Add Client
       </Link>
       <FlatList
         data={clients}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
-          <Link href={{ pathname: '/client/:id', params: { id: item.id } }}>
+          <Link href={{ pathname: '/clients/[id]', params: { id: item.id } }}>
             <View style={styles.clientItem}>
               <Text style={styles.text}>{item.name}</Text> <Text style={styles.text}>{item.address}</Text>
             </View>
