@@ -17,6 +17,15 @@ export interface Client {
   createdAt: string; // ISO date string
   updatedAt: string; // ISO date string
 }
+// Vehicle summary for client details
+export interface VehicleSummary {
+  id: string;
+  make: string;
+  model: string;
+  year: number;
+  licensePlate?: string;
+  lastService?: string;
+}
 
 // Client input for creating/updating
 export interface ClientInput {
@@ -46,9 +55,9 @@ export class ClientRepository {
    */
   async getAll(): Promise<Client[]> {
     return this.db.getAllAsync<Client>(`
-      SELECT * FROM clients 
-      ORDER BY lastName, firstName
-    `);
+        SELECT * FROM clients 
+        ORDER BY lastName, firstName
+      `);
   }
 
   /**
@@ -57,9 +66,9 @@ export class ClientRepository {
   async getById(id: string): Promise<Client | null> {
     const client = await this.db.getFirstAsync<Client>(
       `
-      SELECT * FROM clients 
-      WHERE id = ?
-    `,
+        SELECT * FROM clients 
+        WHERE id = ?
+      `,
       id
     );
 
@@ -74,14 +83,14 @@ export class ClientRepository {
 
     return this.db.getAllAsync<Client>(
       `
-      SELECT * FROM clients 
-      WHERE 
-        firstName LIKE ? OR 
-        lastName LIKE ? OR 
-        phoneNumber LIKE ? OR 
-        email LIKE ?
-      ORDER BY lastName, firstName
-    `,
+        SELECT * FROM clients 
+        WHERE 
+          firstName LIKE ? OR 
+          lastName LIKE ? OR 
+          phoneNumber LIKE ? OR 
+          email LIKE ?
+        ORDER BY lastName, firstName
+      `,
       term,
       term,
       term,
@@ -114,12 +123,12 @@ export class ClientRepository {
     // Using the new async API for writing data
     await this.db.runAsync(
       `
-      INSERT INTO clients (
-        id, firstName, lastName, phoneNumber, email, 
-        street, city, state, zipCode, notes, 
-        createdAt, updatedAt
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `,
+        INSERT INTO clients (
+          id, firstName, lastName, phoneNumber, email, 
+          street, city, state, zipCode, notes, 
+          createdAt, updatedAt
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `,
       client.id,
       client.firstName,
       client.lastName,
@@ -153,20 +162,20 @@ export class ClientRepository {
     await this.db.withTransactionAsync(async () => {
       await this.db.runAsync(
         `
-        UPDATE clients 
-        SET 
-          firstName = ?, 
-          lastName = ?, 
-          phoneNumber = ?, 
-          email = ?, 
-          street = ?, 
-          city = ?, 
-          state = ?, 
-          zipCode = ?, 
-          notes = ?,
-          updatedAt = ?
-        WHERE id = ?
-      `,
+          UPDATE clients 
+          SET 
+            firstName = ?, 
+            lastName = ?, 
+            phoneNumber = ?, 
+            email = ?, 
+            street = ?, 
+            city = ?, 
+            state = ?, 
+            zipCode = ?, 
+            notes = ?,
+            updatedAt = ?
+          WHERE id = ?
+        `,
         input.firstName,
         input.lastName,
         input.phoneNumber,
@@ -195,12 +204,12 @@ export class ClientRepository {
    */
   async delete(id: string): Promise<boolean> {
     // Use withTransactionAsync to ensure data integrity
-    let isDeleted = false;
+    let success = false;
     await this.db.withTransactionAsync(async () => {
       const result = await this.db.runAsync('DELETE FROM clients WHERE id = ?', id);
-      isDeleted = result.changes > 0;
+      success = result.changes > 0;
     });
-    return isDeleted;
+    return success;
   }
 
   /**
