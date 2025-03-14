@@ -1,21 +1,42 @@
 {
   "name": "auto-organize-me",
   "version": "1.0.0",
-  "main": "index.ts",
+  "main": "node_modules/expo/AppEntry.js",
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
+    "typescript": "tsc --noEmit",
+    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\"",
+    "test": "jest",
+    "prepare": "husky install",
+    "pre-commit": "lint-staged",
+    "build:android": "eas build --platform android --profile preview",
+    "build:production": "eas build --platform android --profile production"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md}": [
+      "prettier --write"
+    ]
   },
   "dependencies": {
+    "@react-native-async-storage/async-storage": "^2.1.2",
     "@react-navigation/bottom-tabs": "^7.2.1",
     "@react-navigation/drawer": "^7.1.2",
     "@react-navigation/native": "^7.0.15",
     "@react-navigation/stack": "^7.1.2",
     "date-fns": "^4.1.0",
     "expo": "~52.0.38",
+    "expo-app-loading": "^2.1.1",
     "expo-camera": "^16.0.18",
+    "expo-crypto": "^14.0.2",
     "expo-file-system": "^18.0.11",
     "expo-image-manipulator": "^13.0.6",
     "expo-image-picker": "^16.0.6",

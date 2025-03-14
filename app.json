@@ -1,28 +1,65 @@
 {
   "expo": {
-    "name": "auto-organize-me",
+    "name": "Auto Organize Me",
     "slug": "auto-organize-me",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
+    "assetBundlePatterns": ["**/*"],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.geracamodev.autoorganizeme"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.geracamodev.autoorganizeme",
+      "permissions": [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "The app accesses your photos to let you add them to vehicle and job records."
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow Auto Organize Me to access your camera to take photos of vehicles and repairs."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow Auto Organize Me to use your location for at-home service visits."
+        }
+      ],
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "Allow Auto Organize Me to access your media library to save photos of vehicles and repairs.",
+          "savePhotosPermission": "Allow Auto Organize Me to save photos to your media library.",
+          "isAccessMediaLocationEnabled": true
+        }
+      ]
+    ]
   }
 }
