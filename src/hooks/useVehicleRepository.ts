@@ -1,6 +1,5 @@
-import * as SQLite from 'expo-sqlite';
+import { useSQLiteContext } from 'expo-sqlite';
 import { v4 as uuidv4 } from 'uuid';
-import { getDatabase } from '../database';
 
 // Vehicle model
 export interface Vehicle {
@@ -74,20 +73,16 @@ export interface VehiclePhoto {
 }
 
 /**
- * Repository for vehicle-related database operations
+ * Hook for vehicle-related database operations
  */
-export class VehicleRepository {
-  private db: SQLite.SQLiteDatabase;
-
-  constructor() {
-    this.db = getDatabase();
-  }
+export function useVehicleRepository() {
+  const db = useSQLiteContext();
 
   /**
    * Get all vehicles
    */
-  async getAll(): Promise<VehicleListItem[]> {
-    return this.db.getAllAsync<VehicleListItem>(`
+  const getAll = async (): Promise<VehicleListItem[]> => {
+    return db.getAllAsync<VehicleListItem>(`
       SELECT 
         v.id, v.make, v.model, v.year, v.licensePlate, v.clientId,
         c.firstName || ' ' || c.lastName as clientName,
@@ -105,13 +100,13 @@ export class VehicleRepository {
       JOIN clients c ON v.clientId = c.id
       ORDER BY v.make, v.model
     `);
-  }
+  };
 
   /**
    * Get all vehicles for a specific client
    */
-  async getByClientId(clientId: string): Promise<VehicleListItem[]> {
-    return this.db.getAllAsync<VehicleListItem>(
+  const getByClientId = async (clientId: string): Promise<VehicleListItem[]> => {
+    return db.getAllAsync<VehicleListItem>(
       `
       SELECT 
         v.id, v.make, v.model, v.year, v.licensePlate, v.clientId,
@@ -133,13 +128,13 @@ export class VehicleRepository {
     `,
       clientId
     );
-  }
+  };
 
   /**
    * Get a vehicle by ID
    */
-  async getById(id: string): Promise<Vehicle | null> {
-    const vehicle = await this.db.getFirstAsync<Vehicle>(
+  const getById = async (id: string): Promise<Vehicle | null> => {
+    const vehicle = await db.getFirstAsync<Vehicle>(
       `
       SELECT * FROM vehicles 
       WHERE id = ?
@@ -148,13 +143,13 @@ export class VehicleRepository {
     );
 
     return vehicle || null;
-  }
+  };
 
   /**
    * Get a vehicle with client details
    */
-  async getVehicleWithClient(id: string): Promise<VehicleListItem | null> {
-    const vehicle = await this.db.getFirstAsync<VehicleListItem>(
+  const getVehicleWithClient = async (id: string): Promise<VehicleListItem | null> => {
+    const vehicle = await db.getFirstAsync<VehicleListItem>(
       `
       SELECT 
         v.id, v.make, v.model, v.year, v.licensePlate, v.clientId,
@@ -177,13 +172,13 @@ export class VehicleRepository {
     );
 
     return vehicle || null;
-  }
+  };
 
   /**
    * Get all photos for a vehicle
    */
-  async getVehiclePhotos(vehicleId: string): Promise<VehiclePhoto[]> {
-    return this.db.getAllAsync<VehiclePhoto>(
+  const getVehiclePhotos = async (vehicleId: string): Promise<VehiclePhoto[]> => {
+    return db.getAllAsync<VehiclePhoto>(
       `
       SELECT * FROM vehicle_photos
       WHERE vehicleId = ?
@@ -191,16 +186,16 @@ export class VehicleRepository {
     `,
       vehicleId
     );
-  }
+  };
 
   /**
    * Add a photo to a vehicle
    */
-  async addVehiclePhoto(
+  const addVehiclePhoto = async (
     vehicleId: string,
     photoUri: string,
     description?: string
-  ): Promise<VehiclePhoto> {
+  ): Promise<VehiclePhoto> => {
     const now = new Date().toISOString();
     const id = uuidv4();
 
@@ -212,7 +207,7 @@ export class VehicleRepository {
       createdAt: now,
     };
 
-    await this.db.runAsync(
+    await db.runAsync(
       `
       INSERT INTO vehicle_photos (id, vehicleId, photoUri, description, createdAt)
       VALUES (?, ?, ?, ?, ?)
@@ -225,28 +220,28 @@ export class VehicleRepository {
     );
 
     return photo;
-  }
+  };
 
   /**
    * Delete a vehicle photo
    */
-  async deleteVehiclePhoto(photoId: string): Promise<boolean> {
+  const deleteVehiclePhoto = async (photoId: string): Promise<boolean> => {
     try {
-      await this.db.runAsync('DELETE FROM vehicle_photos WHERE id = ?', photoId);
+      await db.runAsync('DELETE FROM vehicle_photos WHERE id = ?', photoId);
       return true;
     } catch (error) {
       console.error('Error deleting vehicle photo:', error);
       return false;
     }
-  }
+  };
 
   /**
    * Search vehicles by make, model, or license plate
    */
-  async search(searchTerm: string): Promise<VehicleListItem[]> {
+  const search = async (searchTerm: string): Promise<VehicleListItem[]> => {
     const term = `%${searchTerm}%`;
 
-    return this.db.getAllAsync<VehicleListItem>(
+    return db.getAllAsync<VehicleListItem>(
       `
       SELECT 
         v.id, v.make, v.model, v.year, v.licensePlate, v.clientId,
@@ -275,12 +270,12 @@ export class VehicleRepository {
       term,
       term
     );
-  }
+  };
 
   /**
    * Create a new vehicle
    */
-  async create(input: VehicleInput): Promise<Vehicle> {
+  const create = async (input: VehicleInput): Promise<Vehicle> => {
     const now = new Date().toISOString();
     const id = uuidv4();
 
@@ -310,8 +305,8 @@ export class VehicleRepository {
     };
 
     try {
-      await this.db.withTransactionAsync(async () => {
-        await this.db.runAsync(
+      await db.withTransactionAsync(async () => {
+        await db.runAsync(
           `
           INSERT INTO vehicles (
             id, clientId, make, model, year, color, licensePlate, vin,
@@ -351,14 +346,14 @@ export class VehicleRepository {
       console.error('Error creating vehicle:', error);
       throw error;
     }
-  }
+  };
 
   /**
    * Update an existing vehicle
    */
-  async update(id: string, input: VehicleInput): Promise<Vehicle> {
+  const update = async (id: string, input: VehicleInput): Promise<Vehicle> => {
     // First check if vehicle exists
-    const existingVehicle = await this.getById(id);
+    const existingVehicle = await getById(id);
     if (!existingVehicle) {
       throw new Error(`Vehicle with ID ${id} not found`);
     }
@@ -366,8 +361,8 @@ export class VehicleRepository {
     const now = new Date().toISOString();
 
     try {
-      await this.db.withTransactionAsync(async () => {
-        await this.db.runAsync(
+      await db.withTransactionAsync(async () => {
+        await db.runAsync(
           `
           UPDATE vehicles 
           SET 
@@ -418,7 +413,7 @@ export class VehicleRepository {
       });
 
       // Return the updated vehicle
-      const updatedVehicle = await this.getById(id);
+      const updatedVehicle = await getById(id);
       if (!updatedVehicle) {
         throw new Error('Failed to retrieve updated vehicle');
       }
@@ -428,19 +423,19 @@ export class VehicleRepository {
       console.error('Error updating vehicle:', error);
       throw error;
     }
-  }
+  };
 
   /**
    * Delete a vehicle by ID
    */
-  async delete(id: string): Promise<boolean> {
+  const deleteVehicle = async (id: string): Promise<boolean> => {
     try {
-      await this.db.withTransactionAsync(async () => {
+      await db.withTransactionAsync(async () => {
         // Delete related photos first
-        await this.db.runAsync('DELETE FROM vehicle_photos WHERE vehicleId = ?', id);
+        await db.runAsync('DELETE FROM vehicle_photos WHERE vehicleId = ?', id);
 
         // Then delete the vehicle
-        await this.db.runAsync('DELETE FROM vehicles WHERE id = ?', id);
+        await db.runAsync('DELETE FROM vehicles WHERE id = ?', id);
       });
 
       return true;
@@ -448,30 +443,42 @@ export class VehicleRepository {
       console.error('Error deleting vehicle:', error);
       return false;
     }
-  }
+  };
 
   /**
    * Get count of vehicles
    */
-  async getCount(): Promise<number> {
-    const result = await this.db.getFirstAsync<{ count: number }>(
+  const getCount = async (): Promise<number> => {
+    const result = await db.getFirstAsync<{ count: number }>(
       'SELECT COUNT(*) as count FROM vehicles'
     );
     return result?.count || 0;
-  }
+  };
 
   /**
    * Get count of vehicles for a specific client
    */
-  async getCountByClient(clientId: string): Promise<number> {
-    const result = await this.db.getFirstAsync<{ count: number }>(
+  const getCountByClient = async (clientId: string): Promise<number> => {
+    const result = await db.getFirstAsync<{ count: number }>(
       'SELECT COUNT(*) as count FROM vehicles WHERE clientId = ?',
       clientId
     );
     return result?.count || 0;
-  }
-}
+  };
 
-// Create a singleton instance
-const vehicleRepository = new VehicleRepository();
-export default vehicleRepository;
+  return {
+    getAll,
+    getByClientId,
+    getById,
+    getVehicleWithClient,
+    getVehiclePhotos,
+    addVehiclePhoto,
+    deleteVehiclePhoto,
+    search,
+    create,
+    update,
+    delete: deleteVehicle,
+    getCount,
+    getCountByClient,
+  };
+}

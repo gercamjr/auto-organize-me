@@ -4,7 +4,7 @@ import { Text, Searchbar, FAB, Divider, ActivityIndicator, Card, Chip } from 're
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { VehiclesStackParamList } from '../../navigation/VehiclesNavigator';
-import vehicleRepository, { VehicleListItem } from '../../database/repositories/VehicleRepository';
+import { useVehicleRepository, VehicleListItem } from '../../hooks/useVehicleRepository';
 import { spacing, shadows } from '../../utils/theme';
 import { format } from 'date-fns';
 
@@ -13,6 +13,7 @@ type VehicleListScreenNavigationProp = StackNavigationProp<VehiclesStackParamLis
 
 const VehicleListScreen: React.FC = () => {
   const navigation = useNavigation<VehicleListScreenNavigationProp>();
+  const vehicleRepository = useVehicleRepository();
 
   const [vehicles, setVehicles] = useState<VehicleListItem[]>([]);
   const [filteredVehicles, setFilteredVehicles] = useState<VehicleListItem[]>([]);

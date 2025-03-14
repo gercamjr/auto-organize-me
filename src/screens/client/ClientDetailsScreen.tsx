@@ -21,9 +21,9 @@ import {
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { ClientsStackParamList } from '../../navigation/ClientsNavigator';
-import clientRepository from '../../database/repositories/ClientRepository';
 import { spacing, shadows } from '../../utils/theme';
 import { format } from 'date-fns';
+import { useClientRepository } from '@/hooks/useClientRepository';
 
 // Define types for the screen
 type ClientDetailsScreenNavigationProp = StackNavigationProp<
@@ -62,6 +62,7 @@ interface VehicleSummary {
 }
 
 const ClientDetailsScreen: React.FC = () => {
+  const clientRepository = useClientRepository();
   const navigation = useNavigation<ClientDetailsScreenNavigationProp>();
   const route = useRoute<ClientDetailsScreenRouteProp>();
   const { clientId } = route.params;

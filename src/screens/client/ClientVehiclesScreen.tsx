@@ -14,7 +14,7 @@ import {
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { ClientsStackParamList } from '../../navigation/ClientsNavigator';
-import clientRepository, { VehicleSummary } from '../../database/repositories/ClientRepository';
+import { useClientRepository, VehicleSummary } from '../../hooks/useClientRepository';
 import { spacing, shadows } from '../../utils/theme';
 import { format } from 'date-fns';
 
@@ -34,6 +34,7 @@ const ClientVehiclesScreen: React.FC = () => {
   const navigation = useNavigation<ClientVehiclesScreenNavigationProp>();
   const route = useRoute<ClientVehiclesScreenRouteProp>();
   const { clientId } = route.params;
+  const clientRepository = useClientRepository();
 
   const [vehicles, setVehicles] = useState<VehicleWithClient[]>([]);
   const [clientName, setClientName] = useState<string>('');
@@ -245,7 +246,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     padding: spacing.md,
-    paddingBottom: spacing.xl * 3, // Extra space for FAB
+    paddingBottom: spacing.md * 2 + 56, // Extra space for FAB
   },
   vehicleCard: {
     marginBottom: spacing.md,

@@ -23,10 +23,7 @@ import {
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { VehiclesStackParamList } from '../../navigation/VehiclesNavigator';
-import vehicleRepository, {
-  Vehicle,
-  VehiclePhoto,
-} from '../../database/repositories/VehicleRepository';
+import { useVehicleRepository, Vehicle, VehiclePhoto } from '../../hooks/useVehicleRepository';
 import { spacing, shadows } from '../../utils/theme';
 import { format } from 'date-fns';
 
@@ -46,6 +43,8 @@ interface VehicleWithDetails extends Vehicle {
 }
 
 const VehicleDetailsScreen: React.FC = () => {
+  const vehicleRepository = useVehicleRepository();
+
   const navigation = useNavigation<VehicleDetailsScreenNavigationProp>();
   const route = useRoute<VehicleDetailsScreenRouteProp>();
   const { vehicleId } = route.params;

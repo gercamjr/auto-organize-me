@@ -34,12 +34,14 @@ export const DatabaseProvider: React.FC<DatabaseProviderProps> = ({ children }) 
   useEffect(() => {
     const setupDb = async () => {
       try {
-        const database = getDatabase();
+        // Get the database instance (this will wait for initialization if needed)
+        const database = await getDatabase();
         setDb(database);
-        setIsLoading(false);
+        setError(null);
       } catch (err) {
         console.error('Failed to initialize DatabaseContext:', err);
         setError(err instanceof Error ? err : new Error('Failed to initialize database'));
+      } finally {
         setIsLoading(false);
       }
     };

@@ -22,7 +22,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { VehiclesStackParamList } from '../../navigation/VehiclesNavigator';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
-import vehicleRepository, { VehiclePhoto } from '../../database/repositories/VehicleRepository';
+import { useVehicleRepository, VehiclePhoto } from '../../hooks/useVehicleRepository';
 import { spacing, shadows } from '../../utils/theme';
 import { format } from 'date-fns';
 
@@ -34,6 +34,7 @@ type VehiclePhotosScreenNavigationProp = StackNavigationProp<
 type VehiclePhotosScreenRouteProp = RouteProp<VehiclesStackParamList, 'VehiclePhotos'>;
 
 const VehiclePhotosScreen: React.FC = () => {
+  const vehicleRepository = useVehicleRepository();
   const navigation = useNavigation<VehiclePhotosScreenNavigationProp>();
   const route = useRoute<VehiclePhotosScreenRouteProp>();
   const { vehicleId } = route.params;

@@ -1,67 +1,48 @@
 import React, { useState, useEffect } from 'react';
-import { View, FlatList, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { View, StyleSheet, FlatList, TouchableOpacity, RefreshControl } from 'react-native';
 import { Text, Searchbar, FAB, Divider, ActivityIndicator, Card, Avatar } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { ClientsStackParamList } from '../../navigation/ClientsNavigator';
-import { useDatabase } from '../../contexts/DatabaseContext';
+import { useClientRepository, Client } from '../../hooks/useClientRepository';
 import { spacing, shadows } from '../../utils/theme';
 
 // Define the navigation prop type
 type ClientListScreenNavigationProp = StackNavigationProp<ClientsStackParamList, 'ClientList'>;
 
-// Client interface
-interface Client {
-  id: string;
-  firstName: string;
-  lastName: string;
-  phoneNumber: string;
-  email?: string;
-}
-
 const ClientListScreen: React.FC = () => {
   const navigation = useNavigation<ClientListScreenNavigationProp>();
-  const { db, isLoading: isDbLoading, error: dbError } = useDatabase();
+  const clientRepository = useClientRepository();
 
   const [clients, setClients] = useState<Client[]>([]);
   const [filteredClients, setFilteredClients] = useState<Client[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Load clients from database
-  useEffect(() => {
-    const loadClients = async () => {
-      if (!db || isDbLoading) return;
+  const loadClients = async () => {
+    try {
+      setError(null);
 
-      try {
-        setIsLoading(true);
+      const result = await clientRepository.getAll();
 
-        // Using the new API for fetching data
-        const result = await db.getAllAsync<Client>(
-          'SELECT id, firstName, lastName, phoneNumber, email FROM clients ORDER BY lastName, firstName'
-        );
-
-        setClients(result);
-        setFilteredClients(result);
-        setError(null);
-      } catch (err) {
-        console.error('Error loading clients:', err);
-        setError('Failed to load clients. Please try again.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadClients();
-  }, [db, isDbLoading]);
-
-  // Handle database errors
-  useEffect(() => {
-    if (dbError) {
-      setError(`Database error: ${dbError.message}`);
+      setClients(result);
+      setFilteredClients(result);
+    } catch (err) {
+      console.error('Error loading clients:', err);
+      setError('Failed to load clients. Please try again.');
+    } finally {
+      setIsLoading(false);
+      setRefreshing(false);
     }
-  }, [dbError]);
+  };
+
+  // Initial data loading
+  useEffect(() => {
+    loadClients();
+  }, []);
 
   // Handle search
   const handleSearch = (query: string) => {
@@ -77,11 +58,17 @@ const ClientListScreen: React.FC = () => {
       (client) =>
         client.firstName.toLowerCase().includes(lowercaseQuery) ||
         client.lastName.toLowerCase().includes(lowercaseQuery) ||
-        client.phoneNumber.includes(lowercaseQuery) ||
+        client.phoneNumber.toLowerCase().includes(lowercaseQuery) ||
         (client.email && client.email.toLowerCase().includes(lowercaseQuery))
     );
 
     setFilteredClients(filtered);
+  };
+
+  // Handle pull-to-refresh
+  const handleRefresh = () => {
+    setRefreshing(true);
+    loadClients();
   };
 
   // Navigate to client details
@@ -120,28 +107,8 @@ const ClientListScreen: React.FC = () => {
     </View>
   );
 
-  // Handle refresh
-  const handleRefresh = async () => {
-    if (!db) return;
-
-    try {
-      setIsLoading(true);
-      const result = await db.getAllAsync<Client>(
-        'SELECT id, firstName, lastName, phoneNumber, email FROM clients ORDER BY lastName, firstName'
-      );
-      setClients(result);
-      setFilteredClients(result);
-      setError(null);
-    } catch (err) {
-      console.error('Error refreshing clients:', err);
-      setError('Failed to refresh clients. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   // Loading state
-  if (isLoading || isDbLoading) {
+  if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" />
@@ -157,7 +124,14 @@ const ClientListScreen: React.FC = () => {
         <Text variant="titleMedium" style={styles.errorText}>
           {error}
         </Text>
-        <TouchableOpacity style={styles.retryButton} onPress={handleRefresh}>
+        <TouchableOpacity
+          style={styles.retryButton}
+          onPress={() => {
+            setError(null);
+            setIsLoading(true);
+            loadClients();
+          }}
+        >
           <Text style={styles.retryButtonText}>Retry</Text>
         </TouchableOpacity>
       </View>
@@ -181,8 +155,7 @@ const ClientListScreen: React.FC = () => {
         ItemSeparatorComponent={() => <View style={styles.separator} />}
         contentContainerStyle={styles.listContent}
         ListEmptyComponent={renderEmptyState}
-        refreshing={isLoading}
-        onRefresh={handleRefresh}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
       />
 
       <FAB

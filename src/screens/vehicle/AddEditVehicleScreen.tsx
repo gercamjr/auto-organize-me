@@ -6,7 +6,6 @@ import {
   Divider,
   Text,
   ActivityIndicator,
-  Checkbox,
   HelperText,
   Menu,
   Switch,
@@ -14,8 +13,8 @@ import {
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { VehiclesStackParamList } from '../../navigation/VehiclesNavigator';
-import vehicleRepository, { VehicleInput } from '../../database/repositories/VehicleRepository';
-import clientRepository from '../../database/repositories/ClientRepository';
+import { useVehicleRepository, VehicleInput } from '../../hooks/useVehicleRepository';
+import { useClientRepository } from '../../hooks/useClientRepository';
 import { spacing, shadows } from '../../utils/theme';
 
 // Define types for the screen
@@ -38,6 +37,8 @@ const FUEL_TYPES = ['Gasoline', 'Diesel', 'Electric', 'Hybrid', 'Other'];
 const TRANSMISSION_TYPES = ['Automatic', 'Manual', 'CVT', 'DCT', 'Other'];
 
 const AddEditVehicleScreen: React.FC = () => {
+  const vehicleRepository = useVehicleRepository();
+  const clientRepository = useClientRepository();
   const navigation = useNavigation<AddEditVehicleScreenNavigationProp>();
   const route = useRoute<AddEditVehicleScreenRouteProp>();
   const { vehicleId, clientId: preSelectedClientId } = route.params || {};

@@ -4,7 +4,7 @@ import { TextInput, Button, Divider, Text, ActivityIndicator } from 'react-nativ
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { ClientsStackParamList } from '../../navigation/ClientsNavigator';
-import clientRepository, { ClientInput } from '../../database/repositories/ClientRepository';
+import { useClientRepository, ClientInput } from '../../hooks/useClientRepository';
 import { spacing, shadows } from '../../utils/theme';
 
 // Define navigation props
@@ -15,6 +15,7 @@ type AddEditClientScreenNavigationProp = StackNavigationProp<
 type AddEditClientScreenRouteProp = RouteProp<ClientsStackParamList, 'AddEditClient'>;
 
 const AddEditClientScreen: React.FC = () => {
+  const clientRepository = useClientRepository();
   const navigation = useNavigation<AddEditClientScreenNavigationProp>();
   const route = useRoute<AddEditClientScreenRouteProp>();
   const { clientId } = route.params;
