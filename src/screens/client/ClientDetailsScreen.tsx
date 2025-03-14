@@ -169,7 +169,7 @@ const ClientDetailsScreen: React.FC = () => {
 
   // Handle add vehicle
   const handleAddVehicle = () => {
-    navigation.navigate('Vehicles', {
+    navigation.getParent()?.navigate('Vehicles', {
       screen: 'AddEditVehicle',
       params: { clientId },
     });
@@ -319,7 +319,7 @@ const ClientDetailsScreen: React.FC = () => {
                     <TouchableOpacity
                       style={styles.vehicleItem}
                       onPress={() => {
-                        navigation.navigate('Vehicles', {
+                        navigation.getParent()?.navigate('Vehicles', {
                           screen: 'VehicleDetails',
                           params: { vehicleId: vehicle.id },
                         });

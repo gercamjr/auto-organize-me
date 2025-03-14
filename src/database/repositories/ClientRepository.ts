@@ -221,6 +221,57 @@ export class ClientRepository {
     );
     return result?.count || 0;
   }
+  /**
+   * Get all vehicles belonging to a client
+   */
+  async getClientVehicles(clientId: string): Promise<VehicleSummary[]> {
+    return this.db.getAllAsync<VehicleSummary>(
+      `
+      SELECT 
+        id, make, model, year, licensePlate,
+        (
+          SELECT MAX(completionDate) 
+          FROM jobs 
+          WHERE vehicleId = vehicles.id AND status = 'completed'
+        ) as lastService
+      FROM vehicles 
+      WHERE clientId = ?
+      ORDER BY make, model
+    `,
+      clientId
+    );
+  }
+  /**
+   * Get the count of jobs for a client
+   */
+  async getClientJobCount(clientId: string): Promise<number> {
+    const result = await this.db.getFirstAsync<{ count: number }>(
+      `
+      SELECT COUNT(*) as count 
+      FROM jobs 
+      WHERE clientId = ?
+    `,
+      clientId
+    );
+
+    return result?.count || 0;
+  }
+
+  /**
+   * Get the count of appointments for a client
+   */
+  async getClientAppointmentCount(clientId: string): Promise<number> {
+    const result = await this.db.getFirstAsync<{ count: number }>(
+      `
+      SELECT COUNT(*) as count 
+      FROM appointments 
+      WHERE clientId = ?
+    `,
+      clientId
+    );
+
+    return result?.count || 0;
+  }
 }
 
 // Create a singleton instance

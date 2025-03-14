@@ -101,7 +101,7 @@ const ClientVehiclesScreen: React.FC = () => {
 
   // Handle add vehicle
   const handleAddVehicle = () => {
-    navigation.navigate('Vehicles', {
+    navigation.getParent()?.navigate('Vehicles', {
       screen: 'AddEditVehicle',
       params: { clientId },
     });
@@ -112,7 +112,7 @@ const ClientVehiclesScreen: React.FC = () => {
     <Card style={styles.vehicleCard}>
       <TouchableOpacity
         onPress={() => {
-          navigation.navigate('Vehicles', {
+          navigation.getParent()?.navigate('Vehicles', {
             screen: 'VehicleDetails',
             params: { vehicleId: item.id },
           });
@@ -146,7 +146,7 @@ const ClientVehiclesScreen: React.FC = () => {
               icon="car-wrench"
               onPress={() => {
                 // Navigate to add job for this vehicle
-                navigation.navigate('Jobs', {
+                navigation.getParent()?.navigate('Jobs', {
                   screen: 'AddEditJob',
                   params: { vehicleId: item.id, clientId },
                 });
@@ -160,7 +160,7 @@ const ClientVehiclesScreen: React.FC = () => {
               mode="outlined"
               icon="information-outline"
               onPress={() => {
-                navigation.navigate('Vehicles', {
+                navigation.getParent()?.navigate('Vehicles', {
                   screen: 'VehicleDetails',
                   params: { vehicleId: item.id },
                 });

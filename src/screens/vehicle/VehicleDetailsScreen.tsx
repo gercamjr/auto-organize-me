@@ -169,7 +169,7 @@ const VehicleDetailsScreen: React.FC = () => {
   const handleAddJob = () => {
     if (!vehicle) return;
 
-    navigation.navigate('Jobs', {
+    navigation.getParent()?.navigate('Jobs', {
       screen: 'AddEditJob',
       params: { vehicleId, clientId: vehicle.clientId },
     });
@@ -179,7 +179,7 @@ const VehicleDetailsScreen: React.FC = () => {
   const handleViewClient = () => {
     if (!vehicle) return;
 
-    navigation.navigate('Clients', {
+    navigation.getParent()?.navigate('Clients', {
       screen: 'ClientDetails',
       params: { clientId: vehicle.clientId },
     });
