@@ -84,14 +84,9 @@ const VehicleDetailsScreen: React.FC = () => {
 
       // Get vehicle photos
       const photos = await vehicleRepository.getVehiclePhotos(vehicleId);
-
-      // Get job count and last service date from jobs table
-      const jobCount = 0; // We'll implement this when we create the JobRepository
-
       const recentJobs = await jobRepository.getByVehicleId(vehicleId);
-      if (recentJobs) {
-        const recentServiceHistory = recentJobs.slice(0, 3);
-      }
+      // Get job count and last service date from jobs table
+      const jobCount = recentJobs.length;
 
       // Combine data
       const vehicleWithDetails: VehicleWithDetails = {
@@ -101,6 +96,11 @@ const VehicleDetailsScreen: React.FC = () => {
         jobCount: jobCount,
         lastServiceDate: vehicleWithClient.lastServiceDate,
       };
+
+      if (recentJobs) {
+        const recentServiceHistory = recentJobs.slice(0, 3);
+        vehicleWithDetails.recentJobs = recentServiceHistory;
+      }
 
       setVehicle(vehicleWithDetails);
     } catch (err) {
