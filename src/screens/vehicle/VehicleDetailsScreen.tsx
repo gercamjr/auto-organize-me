@@ -26,6 +26,7 @@ import { VehiclesStackParamList } from '../../navigation/VehiclesNavigator';
 import { useVehicleRepository, Vehicle, VehiclePhoto } from '../../hooks/useVehicleRepository';
 import { spacing, shadows } from '../../utils/theme';
 import { format } from 'date-fns';
+import { JobListItem, useJobRepository } from '@/hooks/useJobRepository';
 
 // Define types for the screen
 type VehicleDetailsScreenNavigationProp = StackNavigationProp<
@@ -40,10 +41,12 @@ interface VehicleWithDetails extends Vehicle {
   photos: VehiclePhoto[];
   jobCount: number;
   lastServiceDate?: string;
+  recentJobs?: JobListItem[];
 }
 
 const VehicleDetailsScreen: React.FC = () => {
   const vehicleRepository = useVehicleRepository();
+  const jobRepository = useJobRepository();
 
   const navigation = useNavigation<VehicleDetailsScreenNavigationProp>();
   const route = useRoute<VehicleDetailsScreenRouteProp>();
@@ -84,6 +87,11 @@ const VehicleDetailsScreen: React.FC = () => {
 
       // Get job count and last service date from jobs table
       const jobCount = 0; // We'll implement this when we create the JobRepository
+
+      const recentJobs = await jobRepository.getByVehicleId(vehicleId);
+      if (recentJobs) {
+        const recentServiceHistory = recentJobs.slice(0, 3);
+      }
 
       // Combine data
       const vehicleWithDetails: VehicleWithDetails = {
@@ -205,6 +213,31 @@ const VehicleDetailsScreen: React.FC = () => {
       </View>
     );
   }
+
+  // Get status color
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'scheduled':
+        return '#2196F3'; // Blue
+      case 'in-progress':
+        return '#FF9800'; // Orange
+      case 'completed':
+        return '#4CAF50'; // Green
+      case 'invoiced':
+        return '#9C27B0'; // Purple
+      case 'paid':
+        return '#009688'; // Teal
+      case 'canceled':
+        return '#F44336'; // Red
+      default:
+        return '#757575'; // Grey
+    }
+  };
+
+  // Format currency
+  const formatCurrency = (amount: number) => {
+    return `$${amount.toFixed(2)}`;
+  };
 
   return (
     <View style={styles.container}>
@@ -434,7 +467,6 @@ const VehicleDetailsScreen: React.FC = () => {
           </Card.Content>
         </Card>
 
-        {/* Jobs Card - We'll implement this more thoroughly later */}
         <Card style={styles.card}>
           <Card.Content>
             <View style={styles.cardHeader}>
@@ -442,23 +474,63 @@ const VehicleDetailsScreen: React.FC = () => {
               <Button
                 mode="text"
                 onPress={() => {
-                  // Navigate to jobs list filtered by this vehicle
+                  navigation
+                    .getParent()
+                    ?.navigate('Jobs', { screen: 'JobHistory', params: { vehicleId } });
                 }}
                 disabled={vehicle.jobCount === 0}
               >
                 View All
               </Button>
             </View>
-
-            <Paragraph style={styles.emptyText}>
-              {vehicle.jobCount === 0
-                ? 'No service history yet'
-                : 'Service history will be implemented in the next phase'}
-            </Paragraph>
-
-            <Button mode="contained" icon="wrench" style={styles.addButton} onPress={handleAddJob}>
-              Add Service Record
-            </Button>
+            {!vehicle.recentJobs || vehicle.recentJobs.length === 0 ? (
+              <Paragraph style={styles.emptyText}>No service history yet</Paragraph>
+            ) : (
+              <>
+                {vehicle.recentJobs.map((job, index) => (
+                  <View key={job.id}>
+                    {index > 0 && <Divider style={styles.itemDivider} />}
+                    <TouchableOpacity
+                      style={styles.jobItem}
+                      onPress={() => {
+                        navigation
+                          .getParent()
+                          ?.navigate('Jobs', { screen: 'JobDetails', params: { jobId: job.id } });
+                      }}
+                    >
+                      <View style={styles.jobDetails}>
+                        <Text style={styles.jobTitle}>{job.title}</Text>
+                        <View style={styles.jobStatusRow}>
+                          <View
+                            style={[
+                              styles.statusIndicator,
+                              { backgroundColor: getStatusColor(job.status) },
+                            ]}
+                          />
+                          <Text style={styles.jobSubInfo}>
+                            {job.status.charAt(0).toUpperCase() +
+                              job.status.slice(1).replace('-', ' ')}
+                          </Text>
+                          <Text style={styles.jobDate}>
+                            {formatDate(job.completionDate || job.scheduledDate)}
+                          </Text>
+                        </View>
+                        <Text style={styles.jobCost}>{formatCurrency(job.totalCost)}</Text>
+                      </View>
+                      <IconButton icon="chevron-right" size={24} />
+                    </TouchableOpacity>
+                  </View>
+                ))}
+                <Button
+                  mode="outlined"
+                  icon="wrench"
+                  style={styles.addButton}
+                  onPress={handleAddJob}
+                >
+                  New Service Record
+                </Button>
+              </>
+            )}
           </Card.Content>
         </Card>
       </ScrollView>
@@ -595,6 +667,45 @@ const styles = StyleSheet.create({
     color: 'red',
     marginBottom: spacing.md,
     textAlign: 'center',
+  },
+  jobItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.sm,
+  },
+  jobDetails: {
+    flex: 1,
+  },
+  jobTitle: {
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  jobStatusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: spacing.xs,
+  },
+  jobSubInfo: {
+    color: '#666',
+    fontSize: 14,
+    marginRight: spacing.md,
+  },
+  jobDate: {
+    color: '#666',
+    fontSize: 14,
+  },
+  jobCost: {
+    marginTop: spacing.xs,
+    fontWeight: 'bold',
+  },
+  itemDivider: {
+    marginVertical: spacing.xs,
+  },
+  statusIndicator: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginRight: spacing.xs,
   },
 });
 

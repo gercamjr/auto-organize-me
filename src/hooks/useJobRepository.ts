@@ -63,6 +63,7 @@ export interface JobListItem {
   vehicleId: string;
   vehicleInfo: string;
   scheduledDate?: string;
+  completionDate?: string;
   totalCost: number;
   photoUri?: string;
 }

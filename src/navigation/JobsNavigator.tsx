@@ -14,6 +14,7 @@ import AddEditLaborScreen from '../screens/job/AddEditLaborScreen';
 import JobDiagnosticsScreen from '../screens/job/JobDiagnosticsScreen';
 import AddEditDiagnosticScreen from '../screens/job/AddEditDiagnosticScreen';
 import JobPhotosScreen from '../screens/job/JobPhotosScreen';
+import JobHistoryScreen from '@/screens/job/JobHistoryScreen';
 
 // Define the jobs stack parameter list
 export type JobsStackParamList = {
@@ -40,6 +41,7 @@ export type JobsStackParamList = {
     diagnosticId?: string;
   };
   JobPhotos: { jobId: string };
+  JobHistory: { vehicleId: string };
 };
 
 const Stack = createStackNavigator<JobsStackParamList>();
@@ -192,6 +194,11 @@ const JobsNavigator: React.FC = () => {
         options={{
           title: 'Job Photos',
         }}
+      />
+      <Stack.Screen
+        name="JobHistory"
+        component={JobHistoryScreen}
+        options={{ title: 'Service History' }}
       />
     </Stack.Navigator>
   );
