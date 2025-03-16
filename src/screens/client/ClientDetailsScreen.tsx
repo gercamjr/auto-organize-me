@@ -352,12 +352,7 @@ const ClientDetailsScreen: React.FC = () => {
               </>
             )}
 
-            <Button
-              mode="contained"
-              icon="car-plus"
-              style={styles.addButton}
-              onPress={handleAddVehicle}
-            >
+            <Button mode="contained" icon="car" style={styles.addButton} onPress={handleAddVehicle}>
               Add Vehicle
             </Button>
           </Card.Content>

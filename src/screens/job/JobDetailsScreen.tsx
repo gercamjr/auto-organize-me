@@ -170,7 +170,7 @@ const JobDetailsScreen: React.FC = () => {
           style: 'destructive',
           onPress: async () => {
             try {
-              const success = await jobRepository.delete(jobId);
+              const success = await jobRepository.deleteJob(jobId);
               if (success) {
                 navigation.goBack();
               } else {

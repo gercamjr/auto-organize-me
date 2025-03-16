@@ -5,11 +5,11 @@ import { IconButton } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTheme } from 'react-native-paper';
 
-// Import screens (we'll create placeholders for now)
+// Import screens and navigators
 //import DashboardScreen from '../screens/dashboard/DashboardScreen';
 import ClientsNavigator from './ClientsNavigator';
 import VehiclesNavigator from './VehiclesNavigator';
-//import JobsNavigator from './JobsNavigator';
+import JobsNavigator from './JobsNavigator';
 //import AppointmentsNavigator from './AppointmentsNavigator';
 //import SettingsScreen from '../screens/settings/SettingsScreen';
 
@@ -78,8 +78,8 @@ export const MainNavigator: React.FC = () => {
       {/* <Tab.Screen name="Dashboard" component={DashboardScreen} /> */}
       <Tab.Screen name="Clients" component={ClientsNavigator} />
       <Tab.Screen name="Vehicles" component={VehiclesNavigator} />
-      {/* <Tab.Screen name="Jobs" component={JobsNavigator} />
-      <Tab.Screen name="Appointments" component={AppointmentsNavigator} />
+      <Tab.Screen name="Jobs" component={JobsNavigator} />
+      {/* <Tab.Screen name="Appointments" component={AppointmentsNavigator} />
       <Tab.Screen name="Settings" component={SettingsScreen} /> */}
     </Tab.Navigator>
   );
