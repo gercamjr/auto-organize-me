@@ -17,8 +17,6 @@ import {
   Divider,
   IconButton,
   ActivityIndicator,
-  FAB,
-  Chip,
 } from 'react-native-paper';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -31,6 +29,7 @@ import {
   DiagnosticItem,
   JobPhoto,
 } from '../../hooks/useJobRepository';
+import { useInvoiceRepository } from '@/hooks/useInvoiceRepository';
 import { spacing, shadows } from '../../utils/theme';
 import { format } from 'date-fns';
 
@@ -53,6 +52,7 @@ const JobDetailsScreen: React.FC = () => {
   const route = useRoute<JobDetailsScreenRouteProp>();
   const { jobId } = route.params;
   const jobRepository = useJobRepository();
+  const invoiceRepository = useInvoiceRepository();
 
   const [job, setJob] = useState<JobWithDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -108,6 +108,44 @@ const JobDetailsScreen: React.FC = () => {
     } finally {
       setIsLoading(false);
       setRefreshing(false);
+    }
+  };
+
+  // Handle generating an invoice
+  const handleGenerateInvoice = async () => {
+    try {
+      // Check if an invoice already exists
+      const invoice = await invoiceRepository.getByJobId(jobId);
+
+      if (invoice) {
+        // Invoice exists, navigate to it
+        Alert.alert(
+          'Invoice Exists',
+          'An invoice already exists for this job. Would you like to view it?',
+          [
+            { text: 'No', style: 'cancel' },
+            {
+              text: 'Yes',
+              onPress: () => {
+                navigation.getParent()?.navigate('Invoices', {
+                  screen: 'InvoiceDetails',
+                  params: { invoiceId: invoice.id },
+                });
+              },
+            },
+          ]
+        );
+        return;
+      }
+
+      // No invoice exists, navigate to generate invoice screen
+      navigation.getParent()?.navigate('Invoices', {
+        screen: 'GenerateInvoice',
+        params: { jobId },
+      });
+    } catch (err) {
+      console.error('Error checking for existing invoice:', err);
+      Alert.alert('Error', 'Failed to check for existing invoice');
     }
   };
 
@@ -170,7 +208,7 @@ const JobDetailsScreen: React.FC = () => {
           style: 'destructive',
           onPress: async () => {
             try {
-              const success = await jobRepository.deleteJob(jobId);
+              const success = await jobRepository.delete(jobId);
               if (success) {
                 navigation.goBack();
               } else {
@@ -381,6 +419,17 @@ const JobDetailsScreen: React.FC = () => {
                   <Text style={styles.financialValue}>#{job.invoiceNumber}</Text>
                 </View>
               )}
+              <Button
+                mode="outlined"
+                icon="file-document"
+                onPress={handleGenerateInvoice}
+                style={styles.invoiceButton}
+                disabled={
+                  job.status !== 'completed' && job.status !== 'invoiced' && job.status !== 'paid'
+                }
+              >
+                {job.invoiceNumber ? 'View Invoice' : 'Generate Invoice'}
+              </Button>
             </View>
 
             {/* Action Buttons */}
@@ -708,6 +757,9 @@ const styles = StyleSheet.create({
     color: 'red',
     marginBottom: spacing.md,
     textAlign: 'center',
+  },
+  invoiceButton: {
+    marginTop: spacing.md,
   },
 });
 

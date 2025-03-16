@@ -10,6 +10,7 @@ import { useTheme } from 'react-native-paper';
 import ClientsNavigator from './ClientsNavigator';
 import VehiclesNavigator from './VehiclesNavigator';
 import JobsNavigator from './JobsNavigator';
+import InvoicesNavigator from './InvoicesNavigator';
 //import AppointmentsNavigator from './AppointmentsNavigator';
 //import SettingsScreen from '../screens/settings/SettingsScreen';
 
@@ -19,6 +20,7 @@ export type MainTabParamList = {
   Clients: undefined;
   Vehicles: undefined;
   Jobs: undefined;
+  Invoices: undefined;
   Appointments: undefined;
   Settings: undefined;
 };
@@ -51,6 +53,9 @@ export const MainNavigator: React.FC = () => {
             case 'Jobs':
               iconName = 'wrench';
               break;
+            case 'Invoices':
+              iconName = 'file-document';
+              break;
             case 'Appointments':
               iconName = 'calendar';
               break;
@@ -79,6 +84,7 @@ export const MainNavigator: React.FC = () => {
       <Tab.Screen name="Clients" component={ClientsNavigator} />
       <Tab.Screen name="Vehicles" component={VehiclesNavigator} />
       <Tab.Screen name="Jobs" component={JobsNavigator} />
+      <Tab.Screen name="Invoices" component={InvoicesNavigator} />
       {/* <Tab.Screen name="Appointments" component={AppointmentsNavigator} />
       <Tab.Screen name="Settings" component={SettingsScreen} /> */}
     </Tab.Navigator>

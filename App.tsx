@@ -207,6 +207,41 @@ async function migrateDatabase(db: SQLiteDatabase) {
         FOREIGN KEY (clientId) REFERENCES clients (id) ON DELETE CASCADE,
         FOREIGN KEY (vehicleId) REFERENCES vehicles (id) ON DELETE CASCADE
       );
+      CREATE TABLE IF NOT EXISTS invoices (
+    id TEXT PRIMARY KEY NOT NULL,
+    jobId TEXT NOT NULL,
+    invoiceNumber TEXT NOT NULL,
+    issuedDate TEXT NOT NULL,
+    dueDate TEXT NOT NULL,
+    status TEXT NOT NULL,
+    subtotal REAL NOT NULL,
+    taxRate REAL NOT NULL,
+    taxAmount REAL NOT NULL,
+    discountAmount REAL NOT NULL,
+    totalAmount REAL NOT NULL,
+    notes TEXT,
+    termsAndConditions TEXT,
+    createdAt TEXT NOT NULL,
+    updatedAt TEXT NOT NULL,
+    FOREIGN KEY (jobId) REFERENCES jobs (id) ON DELETE CASCADE
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_invoices_job_id ON invoices (jobId);
+  CREATE INDEX IF NOT EXISTS idx_invoices_status ON invoices (status);
+  CREATE INDEX IF NOT EXISTS idx_invoices_due_date ON invoices (dueDate);
+
+  CREATE TABLE IF NOT EXISTS payments (
+    id TEXT PRIMARY KEY NOT NULL,
+    invoiceId TEXT NOT NULL,
+    amount REAL NOT NULL,
+    paymentMethod TEXT NOT NULL,
+    paymentDate TEXT NOT NULL,
+    notes TEXT,
+    createdAt TEXT NOT NULL,
+    FOREIGN KEY (invoiceId) REFERENCES invoices (id) ON DELETE CASCADE
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_payments_invoice_id ON payments (invoiceId);
     `);
 
     console.log('Database migration completed successfully');
