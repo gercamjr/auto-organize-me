@@ -11,7 +11,7 @@ import ClientsNavigator from './ClientsNavigator';
 import VehiclesNavigator from './VehiclesNavigator';
 import JobsNavigator from './JobsNavigator';
 import InvoicesNavigator from './InvoicesNavigator';
-//import AppointmentsNavigator from './AppointmentsNavigator';
+import AppointmentsNavigator from './AppointmentsNavigator';
 //import SettingsScreen from '../screens/settings/SettingsScreen';
 
 // Define the main tab parameter list
@@ -85,8 +85,8 @@ export const MainNavigator: React.FC = () => {
       <Tab.Screen name="Vehicles" component={VehiclesNavigator} />
       <Tab.Screen name="Jobs" component={JobsNavigator} />
       <Tab.Screen name="Invoices" component={InvoicesNavigator} />
-      {/* <Tab.Screen name="Appointments" component={AppointmentsNavigator} />
-      <Tab.Screen name="Settings" component={SettingsScreen} /> */}
+      <Tab.Screen name="Appointments" component={AppointmentsNavigator} />
+      {/* <Tab.Screen name="Settings" component={SettingsScreen} /> */}
     </Tab.Navigator>
   );
 };
