@@ -3,7 +3,7 @@ import { Alert } from 'react-native';
 import { useAppointmentRepository } from './useAppointmentRepository';
 import { useClientRepository } from './useClientRepository';
 import ReminderService from '../services/ReminderService';
-import { addDays, format, parse } from 'date-fns';
+import { addDays, parse } from 'date-fns';
 
 export function useReminders() {
   const appointmentRepository = useAppointmentRepository();

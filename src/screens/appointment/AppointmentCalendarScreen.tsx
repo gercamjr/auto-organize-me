@@ -10,7 +10,7 @@ import {
   AppointmentListItem,
 } from '../../hooks/useAppointmentRepository';
 import { spacing, shadows } from '../../utils/theme';
-import { format, parseISO, isToday, isEqual, startOfDay, endOfDay } from 'date-fns';
+import { format, parse, isToday, isEqual, startOfDay } from 'date-fns';
 
 // Define the navigation prop type
 type AppointmentCalendarScreenNavigationProp = StackNavigationProp<
@@ -23,10 +23,17 @@ const AppointmentCalendarScreen: React.FC = () => {
   const appointmentRepository = useAppointmentRepository();
 
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [markedDates, setMarkedDates] = useState<{ [date: string]: any }>({});
+  const [markedDates, setMarkedDates] = useState<{
+    [date: string]: {
+      dots: { key: string; color: string }[];
+      selected?: boolean;
+      selectedColor?: string;
+    };
+  }>({});
   const [appointments, setAppointments] = useState<AppointmentListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadingSelectedDay, setLoadingSelectedDay] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [error, setError] = useState<string | null>(null);
 
   // Load all appointments and mark calendar dates
@@ -39,10 +46,16 @@ const AppointmentCalendarScreen: React.FC = () => {
       const allAppointments = await appointmentRepository.getAll();
 
       // Create marked dates object for calendar
-      const marked: { [date: string]: any } = {};
+      const marked: {
+        [date: string]: {
+          dots: { key: string; color: string }[];
+          selected?: boolean;
+          selectedColor?: string;
+        };
+      } = {};
 
       allAppointments.forEach((appointment) => {
-        const date = parseISO(appointment.scheduledDate);
+        const date = parse(appointment.scheduledDate);
         const dateStr = format(date, 'yyyy-MM-dd');
 
         let dotColor = '#2196F3'; // Default blue
@@ -108,6 +121,7 @@ const AppointmentCalendarScreen: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Load appointments for a specific date
@@ -133,7 +147,7 @@ const AppointmentCalendarScreen: React.FC = () => {
 
       // Remove previous selection
       Object.keys(newMarkedDates).forEach((key) => {
-        if (newMarkedDates[key].selected && !isEqual(parseISO(key), startOfDay(new Date()))) {
+        if (newMarkedDates[key].selected && !isEqual(parse(key), startOfDay(new Date()))) {
           newMarkedDates[key] = {
             ...newMarkedDates[key],
             selected: false,
@@ -180,9 +194,10 @@ const AppointmentCalendarScreen: React.FC = () => {
   // Format time
   const formatTime = (dateString: string) => {
     try {
-      const date = parseISO(dateString);
+      const date = parse(dateString);
       return format(date, 'h:mm a');
-    } catch (err) {
+    } catch (err: unknown) {
+      console.error('Error formatting time:', err);
       return 'Invalid time';
     }
   };

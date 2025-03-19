@@ -1,9 +1,7 @@
 import * as BackgroundFetch from 'expo-background-fetch';
 import * as TaskManager from 'expo-task-manager';
-import { useAppointmentRepository } from '../hooks/useAppointmentRepository';
-import { useClientRepository } from '../hooks/useClientRepository';
 import ReminderService from './ReminderService';
-import { addDays, parseISO } from 'date-fns';
+import { addDays, parse } from 'date-fns';
 
 // Define background task name
 const BACKGROUND_REMINDER_TASK = 'background-reminder-task';
@@ -50,7 +48,7 @@ TaskManager.defineTask(BACKGROUND_REMINDER_TASK, async () => {
     // Process SMS/email reminders for appointments the next day
     const tomorrow = addDays(new Date(), 1);
     const tomorrowAppointments = appointments.filter((appointment) => {
-      const appointmentDate = parseISO(appointment.scheduledDate);
+      const appointmentDate = parse(appointment.scheduledDate);
       const appointmentDateOnly = new Date(
         appointmentDate.getFullYear(),
         appointmentDate.getMonth(),

@@ -1,7 +1,5 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { createStackNavigator } from '@react-navigation/stack';
-import { IconButton } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTheme } from 'react-native-paper';
 
@@ -36,7 +34,7 @@ export const MainNavigator: React.FC = () => {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
-        tabBarIcon: ({ focused, color, size }) => {
+        tabBarIcon: ({ color, size }) => {
           let iconName: string;
 
           // Define icons for each tab
@@ -66,7 +64,13 @@ export const MainNavigator: React.FC = () => {
               iconName = 'help-circle';
           }
 
-          return <MaterialCommunityIcons name={iconName as any} size={size} color={color} />;
+          return (
+            <MaterialCommunityIcons
+              name={iconName as keyof typeof MaterialCommunityIcons.glyphMap}
+              size={size}
+              color={color}
+            />
+          );
         },
         tabBarActiveTintColor: theme.colors.primary,
         tabBarInactiveTintColor: theme.colors.onSurfaceDisabled,
