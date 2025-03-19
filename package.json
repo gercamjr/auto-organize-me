@@ -44,6 +44,7 @@
     "expo-linking": "^7.0.5",
     "expo-location": "^18.0.8",
     "expo-media-library": "^17.0.6",
+    "expo-notifications": "^0.29.14",
     "expo-print": "^14.0.3",
     "expo-sharing": "^13.0.1",
     "expo-sqlite": "^15.1.2",
@@ -51,6 +52,7 @@
     "react": "18.3.1",
     "react-native": "0.76.7",
     "react-native-calendars": "^1.1310.0",
+    "react-native-file-access": "^3.1.1",
     "react-native-get-random-values": "^1.11.0",
     "react-native-maps": "1.18.0",
     "react-native-paper": "^5.13.1",
@@ -58,6 +60,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
+    "@types/date-fns": "^2.5.3",
     "@types/react": "~18.3.12",
     "@typescript-eslint/eslint-plugin": "^8.26.1",
     "@typescript-eslint/parser": "^8.26.1",

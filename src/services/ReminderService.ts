@@ -1,7 +1,8 @@
 import { AppointmentListItem } from '../hooks/useAppointmentRepository';
 import * as Notifications from 'expo-notifications';
-import { isToday, isTomorrow, parseISO, addHours } from 'date-fns';
-import * as FileSystem from 'expo-file-system';
+import { isToday, isTomorrow, parse, addHours } from 'date-fns';
+import * as ExpoFileSystem from 'expo-file-system';
+import { FileSystem } from 'react-native-file-access';
 
 // Configure notifications
 Notifications.setNotificationHandler({
@@ -33,7 +34,7 @@ class ReminderService {
     // Filter to only upcoming appointments
     const now = new Date();
     const upcomingAppointments = appointments.filter((appointment) => {
-      const appointmentDate = parseISO(appointment.scheduledDate);
+      const appointmentDate = parse(appointment.scheduledDate);
       return (
         appointmentDate > now && !['canceled', 'no-show', 'completed'].includes(appointment.status)
       );
@@ -49,7 +50,7 @@ class ReminderService {
 
   // Schedule a reminder for a single appointment
   static async scheduleAppointmentReminder(appointment: AppointmentListItem) {
-    const appointmentDate = parseISO(appointment.scheduledDate);
+    const appointmentDate = parse(appointment.scheduledDate);
 
     // Create notification for day before
     if (!isToday(appointmentDate) && !isTomorrow(appointmentDate)) {
@@ -64,7 +65,7 @@ class ReminderService {
             body: `You have an appointment with ${appointment.clientName} tomorrow at ${new Date(appointment.scheduledDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
             data: { appointmentId: appointment.id },
           },
-          trigger: dayBeforeDate,
+          trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: dayBeforeDate },
         });
       }
     }
@@ -79,7 +80,7 @@ class ReminderService {
           body: `Reminder: Appointment with ${appointment.clientName} in 2 hours`,
           data: { appointmentId: appointment.id },
         },
-        trigger: twoHoursBefore,
+        trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: twoHoursBefore },
       });
     }
 
@@ -119,12 +120,12 @@ class ReminderService {
   // Log reminder activity to a file for debugging/auditing
   static async logReminderActivity(message: string) {
     try {
-      const logDir = `${FileSystem.documentDirectory}logs/`;
-      const dirInfo = await FileSystem.getInfoAsync(logDir);
+      const logDir = `${ExpoFileSystem.documentDirectory}logs/`;
+      const dirInfo = await ExpoFileSystem.getInfoAsync(logDir);
 
       // Create log directory if it doesn't exist
       if (!dirInfo.exists) {
-        await FileSystem.makeDirectoryAsync(logDir, { intermediates: true });
+        await ExpoFileSystem.makeDirectoryAsync(logDir, { intermediates: true });
       }
 
       // Get today's date in YYYY-MM-DD format for log filename
@@ -136,10 +137,7 @@ class ReminderService {
       const logEntry = `[${timestamp}] ${message}\n`;
 
       // Append to log file
-      await FileSystem.writeAsStringAsync(logFile, logEntry, {
-        encoding: FileSystem.EncodingType.UTF8,
-        append: true,
-      });
+      await FileSystem.appendFile(logFile, logEntry, 'utf8');
 
       return true;
     } catch (error) {

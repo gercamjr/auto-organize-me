@@ -3,7 +3,7 @@ import { Alert } from 'react-native';
 import { useAppointmentRepository } from './useAppointmentRepository';
 import { useClientRepository } from './useClientRepository';
 import ReminderService from '../services/ReminderService';
-import { addDays, isBefore, parseISO } from 'date-fns';
+import { addDays, format, parse } from 'date-fns';
 
 export function useReminders() {
   const appointmentRepository = useAppointmentRepository();
@@ -38,7 +38,7 @@ export function useReminders() {
       // Process SMS/email reminders for appointments the next day
       const tomorrow = addDays(new Date(), 1);
       const tomorrowAppointments = appointments.filter((appointment) => {
-        const appointmentDate = parseISO(appointment.scheduledDate);
+        const appointmentDate = parse(appointment.scheduledDate);
         const appointmentDateOnly = new Date(
           appointmentDate.getFullYear(),
           appointmentDate.getMonth(),

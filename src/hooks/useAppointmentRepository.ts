@@ -45,6 +45,7 @@ export interface AppointmentListItem {
   status: 'scheduled' | 'confirmed' | 'completed' | 'canceled' | 'no-show';
   isHomeVisit: boolean;
   locationAddress?: string;
+  reminderSent: boolean;
 }
 
 /**
