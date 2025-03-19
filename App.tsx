@@ -4,6 +4,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Provider as PaperProvider } from 'react-native-paper';
 import { NavigationContainer } from '@react-navigation/native';
 import { SQLiteDatabase, SQLiteProvider } from 'expo-sqlite';
+import * as SplashScreen from 'expo-splash-screen';
 
 // Import navigation
 import { RootNavigator } from './src/navigation/RootNavigator';
@@ -14,6 +15,8 @@ import { theme } from './src/utils/theme';
 // Import context providers
 import { AuthProvider } from './src/contexts/AuthContext';
 
+// Prevent the splash screen from auto-hiding
+SplashScreen.preventAutoHideAsync();
 // Database migration function
 async function migrateDatabase(db: SQLiteDatabase) {
   try {
@@ -252,6 +255,32 @@ async function migrateDatabase(db: SQLiteDatabase) {
 }
 
 export default function App() {
+  const [appIsReady, setAppIsReady] = React.useState(false);
+
+  React.useEffect(() => {
+    async function prepare() {
+      try {
+        // Perform any data loading or other preparations here
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setAppIsReady(true);
+      }
+    }
+
+    prepare();
+  }, []);
+
+  // Hide the splash screen when the app is ready
+  React.useEffect(() => {
+    if (appIsReady) {
+      SplashScreen.hideAsync();
+    }
+  }, [appIsReady]);
+
+  if (!appIsReady) {
+    return null;
+  }
   return (
     <SafeAreaProvider>
       <PaperProvider theme={theme}>

@@ -244,15 +244,138 @@ class BackgroundReminderService {
   // Run the task manually (useful for testing)
   static async runTaskManually(): Promise<BackgroundFetch.BackgroundFetchResult | null> {
     try {
-      const task = await TaskManager.getTaskAsync(BACKGROUND_REMINDER_TASK);
-      if (task) {
-        const result = await task.taskExecutor();
-        return result as BackgroundFetch.BackgroundFetchResult;
+      // Check if task is registered
+      const isRegistered = await TaskManager.isTaskRegisteredAsync(BACKGROUND_REMINDER_TASK);
+      if (!isRegistered) {
+        console.log('Task is not registered, cannot run manually');
+        return null;
       }
-      return null;
+
+      // Since we can't directly execute the task through TaskManager,
+      // we can just run the same code that would be executed in the background task
+
+      // Open database connection
+      const db = await getDatabase();
+
+      // Query upcoming appointments
+      const now = new Date().toISOString();
+      const upcomingAppointments = await executeQuery<AppointmentWithDetails>(
+        db,
+        `
+      SELECT 
+        a.id, a.clientId, a.vehicleId, a.scheduledDate, a.duration, a.status, a.isHomeVisit, 
+        a.locationAddress, a.reminderSent,
+        c.firstName || ' ' || c.lastName as clientName,
+        c.phoneNumber, c.email,
+        v.year || ' ' || v.make || ' ' || v.model as vehicleInfo
+      FROM appointments a
+      JOIN clients c ON a.clientId = c.id
+      JOIN vehicles v ON a.vehicleId = v.id
+      WHERE a.scheduledDate >= ? AND a.status NOT IN ('completed', 'canceled', 'no-show')
+      ORDER BY a.scheduledDate ASC
+      `,
+        [now]
+      );
+
+      // Process appointments for local notifications
+      await ReminderService.scheduleAppointmentReminders(upcomingAppointments);
+
+      // Find appointments that need reminders sent
+      const tomorrow = addDays(new Date(), 1);
+      const tomorrowStart = new Date(
+        tomorrow.getFullYear(),
+        tomorrow.getMonth(),
+        tomorrow.getDate()
+      );
+      const tomorrowEnd = new Date(tomorrowStart);
+      tomorrowEnd.setHours(23, 59, 59, 999);
+
+      const tomorrowAppointments = upcomingAppointments.filter((appointment) => {
+        const appointmentDate = new Date(appointment.scheduledDate);
+        return (
+          isAfter(appointmentDate, tomorrowStart) &&
+          isBefore(appointmentDate, tomorrowEnd) &&
+          !appointment.reminderSent
+        );
+      });
+
+      let remindersSent = 0;
+
+      // Send reminders for tomorrow's appointments
+      for (const appointment of tomorrowAppointments) {
+        let reminderSent = false;
+
+        // Send SMS if phone number available
+        if (appointment.phoneNumber) {
+          const smsSent = await ReminderService.sendSMSReminder(
+            appointment,
+            appointment.phoneNumber
+          );
+          if (smsSent) {
+            reminderSent = true;
+            await ReminderService.logReminderActivity(
+              `Manual SMS reminder sent to ${appointment.clientName} (${appointment.phoneNumber}) for appointment ID ${appointment.id}`
+            );
+          }
+        }
+
+        // Send email if email available
+        if (appointment.email) {
+          const emailSent = await ReminderService.sendEmailReminder(appointment, appointment.email);
+          if (emailSent) {
+            reminderSent = true;
+            await ReminderService.logReminderActivity(
+              `Manual email reminder sent to ${appointment.clientName} (${appointment.email}) for appointment ID ${appointment.id}`
+            );
+          }
+        }
+
+        // Mark appointment as having had reminders sent
+        if (reminderSent) {
+          await db.runAsync(
+            `UPDATE appointments SET reminderSent = 1, updatedAt = ? WHERE id = ?`,
+            [new Date().toISOString(), appointment.id]
+          );
+          remindersSent++;
+        }
+      }
+
+      // Also handle overdue appointments if needed
+      const overdueAppointments = await executeQuery<{ id: string; status: string }>(
+        db,
+        `
+      SELECT id, status 
+      FROM appointments
+      WHERE scheduledDate < ? AND status = 'scheduled'
+      `,
+        [now]
+      );
+
+      // Mark overdue appointments
+      if (overdueAppointments.length > 0) {
+        for (const appointment of overdueAppointments) {
+          await db.runAsync(
+            `UPDATE appointments SET status = 'no-show', updatedAt = ? WHERE id = ?`,
+            [new Date().toISOString(), appointment.id]
+          );
+        }
+      }
+
+      // Close database connection
+      db.closeAsync();
+
+      if (remindersSent > 0 || upcomingAppointments.length > 0 || overdueAppointments.length > 0) {
+        console.log(
+          `Manual reminder task completed: ${remindersSent} reminders sent, ${overdueAppointments.length} appointments marked as no-show`
+        );
+        return BackgroundFetch.BackgroundFetchResult.NewData;
+      } else {
+        console.log('Manual reminder task completed: no changes needed');
+        return BackgroundFetch.BackgroundFetchResult.NoData;
+      }
     } catch (error) {
-      console.error('Error running task manually:', error);
-      return null;
+      console.error('Error running reminder task manually:', error);
+      return BackgroundFetch.BackgroundFetchResult.Failed;
     }
   }
 }

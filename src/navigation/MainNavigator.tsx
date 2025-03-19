@@ -10,7 +10,7 @@ import VehiclesNavigator from './VehiclesNavigator';
 import JobsNavigator from './JobsNavigator';
 import InvoicesNavigator from './InvoicesNavigator';
 import AppointmentsNavigator from './AppointmentsNavigator';
-//import SettingsScreen from '../screens/settings/SettingsScreen';
+import SettingsScreen from '../screens/settings/SettingsScreen';
 
 // Define the main tab parameter list
 export type MainTabParamList = {
@@ -90,7 +90,7 @@ export const MainNavigator: React.FC = () => {
       <Tab.Screen name="Jobs" component={JobsNavigator} />
       <Tab.Screen name="Invoices" component={InvoicesNavigator} />
       <Tab.Screen name="Appointments" component={AppointmentsNavigator} />
-      {/* <Tab.Screen name="Settings" component={SettingsScreen} /> */}
+      <Tab.Screen name="Settings" component={SettingsScreen} />
     </Tab.Navigator>
   );
 };
