@@ -1,7 +1,8 @@
+/* eslint-disable no-undef */
+/* eslint-disable @typescript-eslint/no-require-imports */
 // metro.config.js
-import { getDefaultConfig } from 'expo/metro-config';
+const { getDefaultConfig } = require('expo/metro-config');
 
-// eslint-disable-next-line no-undef
 const config = getDefaultConfig(__dirname);
 
-export default config;
+module.exports = config;
