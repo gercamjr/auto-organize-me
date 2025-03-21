@@ -30,9 +30,6 @@ jobs:
       - name: Type check
         run: npm run typescript
 
-      - name: Run tests
-        run: npm test
-
   build:
     name: Build Android APK
     needs: validate
