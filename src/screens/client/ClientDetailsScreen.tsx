@@ -24,6 +24,8 @@ import { ClientsStackParamList } from '../../navigation/ClientsNavigator';
 import { spacing, shadows } from '../../utils/theme';
 import { format } from 'date-fns';
 import { useClientRepository } from '@/hooks/useClientRepository';
+import { useJobRepository } from '@/hooks/useJobRepository';
+import { useAppointmentRepository } from '@/hooks/useAppointmentRepository';
 
 // Define types for the screen
 type ClientDetailsScreenNavigationProp = StackNavigationProp<
@@ -61,13 +63,35 @@ interface VehicleSummary {
   lastService?: string;
 }
 
+// Interface for job summary data
+interface JobSummary {
+  id: string;
+  title: string;
+  status: string;
+  scheduledDate?: string;
+  totalCost: number;
+  vehicleSummary?: string; // Add vehicle summary
+}
+
+// Interface for appointment summary data
+interface AppointmentSummary {
+  id: string;
+  scheduledDate: string;
+  duration: number;
+  status: string;
+}
+
 const ClientDetailsScreen: React.FC = () => {
   const clientRepository = useClientRepository();
+  const jobRepository = useJobRepository();
+  const appointmentRepository = useAppointmentRepository();
   const navigation = useNavigation<ClientDetailsScreenNavigationProp>();
   const route = useRoute<ClientDetailsScreenRouteProp>();
   const { clientId } = route.params;
 
   const [client, setClient] = useState<ClientWithVehicles | null>(null);
+  const [recentJobs, setRecentJobs] = useState<JobSummary[]>([]);
+  const [appointments, setAppointments] = useState<AppointmentSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -95,6 +119,30 @@ const ClientDetailsScreen: React.FC = () => {
 
       // Get appointment count
       const appointmentCount = await clientRepository.getClientAppointmentCount(clientId);
+
+      // Get recent jobs
+      const jobs = await jobRepository.getByClientId(clientId);
+      const jobSummaries = jobs
+        .slice(0, 3) // Limit to the three most recent jobs
+        .map((job) => ({
+          id: job.id,
+          title: job.title,
+          status: job.status,
+          scheduledDate: job.scheduledDate,
+          totalCost: job.totalCost,
+          vehicleSummary: job.vehicleInfo,
+        }));
+      setRecentJobs(jobSummaries);
+
+      // Get appointments
+      const appointmentData = await appointmentRepository.getByClientId(clientId);
+      const appointmentSummaries = appointmentData.map((appointment) => ({
+        id: appointment.id,
+        scheduledDate: appointment.scheduledDate,
+        duration: appointment.duration,
+        status: appointment.status,
+      }));
+      setAppointments(appointmentSummaries);
 
       // Combine data
       const clientWithDetails: ClientWithVehicles = {
@@ -130,6 +178,7 @@ const ClientDetailsScreen: React.FC = () => {
     try {
       return format(new Date(dateString), 'MMM d, yyyy');
     } catch (err) {
+      console.error('Error formatting date:', err);
       return 'Unknown';
     }
   };
@@ -358,70 +407,161 @@ const ClientDetailsScreen: React.FC = () => {
           </Card.Content>
         </Card>
 
-        {/* Recent Jobs Card - We'll implement this later */}
+        {/* Recent Jobs Card */}
         <Card style={styles.card}>
           <Card.Content>
             <View style={styles.sectionHeader}>
               <Title style={styles.sectionTitle}>Recent Jobs</Title>
               <Button
                 mode="text"
-                onPress={() => {
-                  // Navigate to jobs list filtered by this client
-                }}
-                disabled={client.jobCount === 0}
+                onPress={() =>
+                  navigation
+                    .getParent()
+                    ?.navigate('Jobs', { screen: 'JobList', params: { clientId } })
+                }
+                disabled={recentJobs.length === 0}
               >
                 View All
               </Button>
             </View>
 
-            <Paragraph style={styles.emptyText}>
-              {client.jobCount === 0
-                ? 'No jobs recorded yet'
-                : 'Job history will be implemented in the next phase'}
-            </Paragraph>
+            {recentJobs.length === 0 ? (
+              <Paragraph style={styles.emptyText}>No jobs recorded yet</Paragraph>
+            ) : (
+              <>
+                {recentJobs.map((job, index) => (
+                  <View key={job.id}>
+                    {index > 0 && <Divider style={styles.itemDivider} />}
+                    <TouchableOpacity
+                      style={styles.jobItem}
+                      onPress={() =>
+                        navigation.getParent()?.navigate('Jobs', {
+                          screen: 'JobDetails',
+                          params: { jobId: job.id },
+                        })
+                      }
+                    >
+                      <View style={styles.jobDetails}>
+                        <Text style={styles.jobTitle}>{job.title}</Text>
+                        <Text style={styles.jobDate}>{formatDate(job.scheduledDate || '')}</Text>
+                        <Text style={styles.jobStatus}>Status: {job.status}</Text>
+                        <Text style={styles.jobCost}>Cost: ${job.totalCost.toFixed(2)}</Text>
+                        {job.vehicleSummary && (
+                          <Text style={styles.jobVehicleSummary}>{job.vehicleSummary}</Text>
+                        )}
+                      </View>
+                      <IconButton icon="chevron-right" size={24} />
+                    </TouchableOpacity>
+                  </View>
+                ))}
+
+                {recentJobs.length > 3 && (
+                  <Button
+                    mode="text"
+                    onPress={() =>
+                      navigation.getParent()?.navigate('Jobs', {
+                        screen: 'JobList',
+                        params: { clientId },
+                      })
+                    }
+                  >
+                    Show All {recentJobs.length} Jobs
+                  </Button>
+                )}
+              </>
+            )}
 
             <Button
               mode="contained"
               icon="wrench"
               style={styles.addButton}
-              onPress={() => {
-                // Navigate to add job screen with this client pre-selected
-              }}
+              onPress={() =>
+                navigation.getParent()?.navigate('Jobs', {
+                  screen: 'AddEditJob',
+                  params: { clientId },
+                })
+              }
             >
               Add Job
             </Button>
           </Card.Content>
         </Card>
 
-        {/* Upcoming Appointments Card - We'll implement this later */}
+        {/* Upcoming Appointments Card */}
         <Card style={[styles.card, styles.lastCard]}>
           <Card.Content>
             <View style={styles.sectionHeader}>
               <Title style={styles.sectionTitle}>Upcoming Appointments</Title>
               <Button
                 mode="text"
-                onPress={() => {
-                  // Navigate to appointments list filtered by this client
-                }}
-                disabled={client.appointmentCount === 0}
+                onPress={() =>
+                  navigation.getParent()?.navigate('Appointments', {
+                    screen: 'AppointmentList',
+                    params: { clientId },
+                  })
+                }
+                disabled={appointments.length === 0}
               >
                 View All
               </Button>
             </View>
 
-            <Paragraph style={styles.emptyText}>
-              {client.appointmentCount === 0
-                ? 'No appointments scheduled'
-                : 'Appointments will be implemented in the next phase'}
-            </Paragraph>
+            {appointments.length === 0 ? (
+              <Paragraph style={styles.emptyText}>No appointments scheduled</Paragraph>
+            ) : (
+              <>
+                {appointments.slice(0, 3).map((appointment, index) => (
+                  <View key={appointment.id}>
+                    {index > 0 && <Divider style={styles.itemDivider} />}
+                    <TouchableOpacity
+                      style={styles.appointmentItem}
+                      onPress={() =>
+                        navigation.getParent()?.navigate('Appointments', {
+                          screen: 'AppointmentDetails',
+                          params: { appointmentId: appointment.id },
+                        })
+                      }
+                    >
+                      <View style={styles.appointmentDetails}>
+                        <Text style={styles.appointmentDate}>
+                          {formatDate(appointment.scheduledDate)}
+                        </Text>
+                        <Text style={styles.appointmentStatus}>Status: {appointment.status}</Text>
+                        <Text style={styles.appointmentDuration}>
+                          Duration: {appointment.duration} mins
+                        </Text>
+                      </View>
+                      <IconButton icon="chevron-right" size={24} />
+                    </TouchableOpacity>
+                  </View>
+                ))}
+
+                {appointments.length > 3 && (
+                  <Button
+                    mode="text"
+                    onPress={() =>
+                      navigation.getParent()?.navigate('Appointments', {
+                        screen: 'AppointmentList',
+                        params: { clientId },
+                      })
+                    }
+                  >
+                    Show All {appointments.length} Appointments
+                  </Button>
+                )}
+              </>
+            )}
 
             <Button
               mode="contained"
               icon="calendar-plus"
               style={styles.addButton}
-              onPress={() => {
-                // Navigate to add appointment screen with this client pre-selected
-              }}
+              onPress={() =>
+                navigation.getParent()?.navigate('Appointments', {
+                  screen: 'AddEditAppointment',
+                  params: { clientId },
+                })
+              }
             >
               Schedule Appointment
             </Button>
@@ -573,6 +713,55 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     backgroundColor: '#4CAF50',
+  },
+  jobItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.sm,
+  },
+  jobDetails: {
+    flex: 1,
+  },
+  jobTitle: {
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  jobDate: {
+    color: '#666',
+    fontSize: 14,
+  },
+  jobStatus: {
+    color: '#666',
+    fontSize: 14,
+  },
+  jobCost: {
+    color: '#666',
+    fontSize: 14,
+  },
+  jobVehicleSummary: {
+    color: '#666',
+    fontSize: 14,
+    fontStyle: 'italic',
+  },
+  appointmentItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.sm,
+  },
+  appointmentDetails: {
+    flex: 1,
+  },
+  appointmentDate: {
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  appointmentStatus: {
+    color: '#666',
+    fontSize: 14,
+  },
+  appointmentDuration: {
+    color: '#666',
+    fontSize: 14,
   },
 });
 

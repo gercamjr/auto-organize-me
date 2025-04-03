@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, FlatList, TouchableOpacity, RefreshControl } from 'react-native';
-import { Text, Searchbar, FAB, Divider, ActivityIndicator, Card, Avatar } from 'react-native-paper';
+import { Text, Searchbar, FAB, ActivityIndicator } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { ClientsStackParamList } from '../../navigation/ClientsNavigator';
 import { useClientRepository, Client } from '../../hooks/useClientRepository';
 import { spacing, shadows } from '../../utils/theme';
+import ClientInfoCard from '../../components/client/ClientInfoCard';
 
 // Define the navigation prop type
 type ClientListScreenNavigationProp = StackNavigationProp<ClientsStackParamList, 'ClientList'>;
@@ -77,25 +78,15 @@ const ClientListScreen: React.FC = () => {
   };
 
   // Render each client item
-  const renderItem = ({ item }: { item: Client }) => {
-    // Get initials for the avatar
-    const initials = `${item.firstName.charAt(0)}${item.lastName.charAt(0)}`.toUpperCase();
-
-    return (
-      <TouchableOpacity onPress={() => handleClientPress(item.id)}>
-        <Card style={styles.card}>
-          <Card.Content style={styles.cardContent}>
-            <Avatar.Text size={50} label={initials} style={styles.avatar} />
-            <View style={styles.clientInfo}>
-              <Text variant="titleMedium">{`${item.firstName} ${item.lastName}`}</Text>
-              <Text variant="bodyMedium">{item.phoneNumber}</Text>
-              {item.email && <Text variant="bodySmall">{item.email}</Text>}
-            </View>
-          </Card.Content>
-        </Card>
-      </TouchableOpacity>
-    );
-  };
+  const renderItem = ({ item }: { item: Client }) => (
+    <ClientInfoCard
+      firstName={item.firstName}
+      lastName={item.lastName}
+      phoneNumber={item.phoneNumber}
+      email={item.email}
+      onPress={() => handleClientPress(item.id)}
+    />
+  );
 
   // Render empty state
   const renderEmptyState = () => (

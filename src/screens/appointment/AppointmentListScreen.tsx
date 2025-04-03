@@ -8,7 +8,6 @@ import {
   Divider,
   ActivityIndicator,
   Chip,
-  IconButton,
   Button,
   SegmentedButtons,
 } from 'react-native-paper';
@@ -20,7 +19,7 @@ import {
   AppointmentListItem,
 } from '../../hooks/useAppointmentRepository';
 import { spacing, shadows } from '../../utils/theme';
-import { format, isToday, isTomorrow, addDays, isAfter, isBefore, parseISO } from 'date-fns';
+import { format, isToday, isTomorrow, isAfter, isBefore } from 'date-fns';
 
 // Define the navigation prop type
 type AppointmentListScreenNavigationProp = StackNavigationProp<
@@ -75,13 +74,13 @@ const AppointmentListScreen: React.FC = () => {
     switch (filter) {
       case 'today':
         filtered = appointmentList.filter((appointment) =>
-          isToday(parseISO(appointment.scheduledDate))
+          isToday(format(appointment.scheduledDate))
         );
         break;
       case 'upcoming':
         filtered = appointmentList.filter(
           (appointment) =>
-            isAfter(parseISO(appointment.scheduledDate), now) &&
+            isAfter(format(appointment.scheduledDate), now) &&
             appointment.status !== 'canceled' &&
             appointment.status !== 'no-show'
         );
@@ -89,7 +88,7 @@ const AppointmentListScreen: React.FC = () => {
       case 'past':
         filtered = appointmentList.filter(
           (appointment) =>
-            isBefore(parseISO(appointment.scheduledDate), now) ||
+            isBefore(format(appointment.scheduledDate), now) ||
             appointment.status === 'completed' ||
             appointment.status === 'canceled' ||
             appointment.status === 'no-show'
@@ -175,20 +174,10 @@ const AppointmentListScreen: React.FC = () => {
     );
   };
 
-  // Format date and time for display
-  const formatDateTime = (dateString: string) => {
-    try {
-      const date = parseISO(dateString);
-      return format(date, 'MMM d, yyyy h:mm a');
-    } catch (err) {
-      return 'Invalid date';
-    }
-  };
-
   // Format relative date
   const formatRelativeDate = (dateString: string) => {
     try {
-      const date = parseISO(dateString);
+      const date = format(dateString);
 
       if (isToday(date)) {
         return 'Today';
@@ -198,6 +187,7 @@ const AppointmentListScreen: React.FC = () => {
         return format(date, 'MMM d, yyyy');
       }
     } catch (err) {
+      console.error('Error formatting date:', err);
       return 'Invalid date';
     }
   };
@@ -205,9 +195,10 @@ const AppointmentListScreen: React.FC = () => {
   // Format time
   const formatTime = (dateString: string) => {
     try {
-      const date = parseISO(dateString);
+      const date = format(dateString);
       return format(date, 'h:mm a');
     } catch (err) {
+      console.error('Error formatting time:', err);
       return 'Invalid time';
     }
   };

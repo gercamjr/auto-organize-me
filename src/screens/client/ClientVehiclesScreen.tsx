@@ -4,7 +4,6 @@ import {
   Text,
   Card,
   Title,
-  Paragraph,
   Button,
   Divider,
   Avatar,
@@ -96,6 +95,7 @@ const ClientVehiclesScreen: React.FC = () => {
     try {
       return format(new Date(dateString), 'MMM d, yyyy');
     } catch (err) {
+      console.error('Error formatting date:', err);
       return 'Invalid date';
     }
   };
@@ -191,7 +191,7 @@ const ClientVehiclesScreen: React.FC = () => {
       {/* Header section with client info */}
       <Card style={styles.headerCard}>
         <Card.Content>
-          <Text style={styles.headerTitle}>{clientName}'s Vehicles</Text>
+          <Text style={styles.headerTitle}>{clientName}&apos;s Vehicles</Text>
           <Text style={styles.headerSubtitle}>
             {vehicles.length} {vehicles.length === 1 ? 'vehicle' : 'vehicles'}
           </Text>
