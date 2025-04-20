@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   StyleSheet,
@@ -26,6 +26,8 @@ import { format } from 'date-fns';
 import { useClientRepository } from '@/hooks/useClientRepository';
 import { useJobRepository } from '@/hooks/useJobRepository';
 import { useAppointmentRepository } from '@/hooks/useAppointmentRepository';
+import { useFocusEffect } from '@react-navigation/native';
+import { useCallback } from 'react';
 
 // Define types for the screen
 type ClientDetailsScreenNavigationProp = StackNavigationProp<
@@ -162,10 +164,15 @@ const ClientDetailsScreen: React.FC = () => {
     }
   };
 
-  // Load data on initial render
-  useEffect(() => {
-    loadClientData();
-  }, [clientId]);
+  useFocusEffect(
+    useCallback(() => {
+      loadClientData();
+    }, [])
+  );
+  // // Load data on initial render
+  // useEffect(() => {
+  //   loadClientData();
+  // }, [clientId]);
 
   // Handle refresh
   const handleRefresh = () => {

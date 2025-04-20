@@ -1,240 +1,98 @@
-import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, FlatList, TouchableOpacity, RefreshControl } from 'react-native';
-import { Text, Searchbar, FAB, ActivityIndicator } from 'react-native-paper';
-import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { ClientsStackParamList } from '../../navigation/ClientsNavigator';
+import React, { useState, useCallback } from 'react';
+import { View, FlatList, Text, ActivityIndicator, StyleSheet } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useClientRepository, Client } from '../../hooks/useClientRepository';
-import { spacing, shadows } from '../../utils/theme';
-import ClientInfoCard from '../../components/client/ClientInfoCard';
+import { Appbar, List, FAB } from 'react-native-paper';
+import { ClientsStackParamList } from '@/navigation/ClientsNavigator';
 
-// Define the navigation prop type
-type ClientListScreenNavigationProp = StackNavigationProp<ClientsStackParamList, 'ClientList'>;
+type ClientListScreenProps = NativeStackScreenProps<ClientsStackParamList, 'ClientList'>;
 
-const ClientListScreen: React.FC = () => {
-  const navigation = useNavigation<ClientListScreenNavigationProp>();
+const ClientListScreen = ({ navigation }: ClientListScreenProps) => {
   const clientRepository = useClientRepository();
-
   const [clients, setClients] = useState<Client[]>([]);
-  const [filteredClients, setFilteredClients] = useState<Client[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Load clients from database
-  const loadClients = async () => {
+  const loadClients = useCallback(async () => {
+    setIsLoading(true);
+    console.log('Fetching clients using repository...');
     try {
-      setError(null);
-
-      const result = await clientRepository.getAll();
-
-      setClients(result);
-      setFilteredClients(result);
-    } catch (err) {
-      console.error('Error loading clients:', err);
-      setError('Failed to load clients. Please try again.');
+      const fetchedClients = await clientRepository.getAll();
+      setClients(fetchedClients);
+      console.log('Clients fetched successfully.');
+    } catch (error) {
+      console.error('Failed to fetch clients:', error);
     } finally {
       setIsLoading(false);
-      setRefreshing(false);
     }
-  };
-
-  // Initial data loading
-  useEffect(() => {
-    loadClients();
   }, []);
 
-  // Handle search
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
-
-    if (!query.trim()) {
-      setFilteredClients(clients);
-      return;
-    }
-
-    const lowercaseQuery = query.toLowerCase();
-    const filtered = clients.filter(
-      (client) =>
-        client.firstName.toLowerCase().includes(lowercaseQuery) ||
-        client.lastName.toLowerCase().includes(lowercaseQuery) ||
-        client.phoneNumber.toLowerCase().includes(lowercaseQuery) ||
-        (client.email && client.email.toLowerCase().includes(lowercaseQuery))
-    );
-
-    setFilteredClients(filtered);
-  };
-
-  // Handle pull-to-refresh
-  const handleRefresh = () => {
-    setRefreshing(true);
-    loadClients();
-  };
-
-  // Navigate to client details
-  const handleClientPress = (clientId: string) => {
-    navigation.navigate('ClientDetails', { clientId });
-  };
-
-  // Render each client item
-  const renderItem = ({ item }: { item: Client }) => (
-    <ClientInfoCard
-      firstName={item.firstName}
-      lastName={item.lastName}
-      phoneNumber={item.phoneNumber}
-      email={item.email}
-      onPress={() => handleClientPress(item.id)}
-    />
+  useFocusEffect(
+    useCallback(() => {
+      loadClients();
+    }, [])
   );
 
-  // Render empty state
-  const renderEmptyState = () => (
-    <View style={styles.emptyContainer}>
-      <Text variant="titleLarge">No Clients Found</Text>
-      <Text variant="bodyMedium" style={styles.emptyText}>
-        {searchQuery ? 'Try different search terms' : 'Add your first client to get started'}
-      </Text>
-    </View>
+  const handleAddNewClient = () => {
+    navigation.navigate('ClientDetails', { clientId: '' });
+  };
+
+  const renderClientItem = ({ item }: { item: Client }) => (
+    console.log('Rendering client item:', item),
+    (
+      <List.Item
+        title={`${item.firstName} ${item.lastName}`}
+        description={item.phoneNumber || 'No phone number'}
+        left={(props) => <List.Icon {...props} icon="account" />}
+        onPress={() => navigation.navigate('ClientDetails', { clientId: item.id })}
+      />
+    )
   );
 
-  // Loading state
-  if (isLoading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" />
-        <Text style={styles.loadingText}>Loading clients...</Text>
-      </View>
-    );
-  }
-
-  // Error state
-  if (error) {
-    return (
-      <View style={styles.errorContainer}>
-        <Text variant="titleMedium" style={styles.errorText}>
-          {error}
-        </Text>
-        <TouchableOpacity
-          style={styles.retryButton}
-          onPress={() => {
-            setError(null);
-            setIsLoading(true);
-            loadClients();
-          }}
-        >
-          <Text style={styles.retryButtonText}>Retry</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
-
-  // Main content
   return (
     <View style={styles.container}>
-      <Searchbar
-        placeholder="Search clients..."
-        onChangeText={handleSearch}
-        value={searchQuery}
-        style={styles.searchBar}
-      />
+      <Appbar.Header>
+        <Appbar.Content title="Clients" />
+      </Appbar.Header>
 
-      <FlatList
-        data={filteredClients}
-        keyExtractor={(item) => item.id}
-        renderItem={renderItem}
-        ItemSeparatorComponent={() => <View style={styles.separator} />}
-        contentContainerStyle={styles.listContent}
-        ListEmptyComponent={renderEmptyState}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
-      />
+      {isLoading && clients?.length === 0 ? (
+        <ActivityIndicator animating={true} size="large" style={styles.loader} />
+      ) : (
+        <FlatList
+          data={clients}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={renderClientItem}
+          ListEmptyComponent={<Text style={styles.emptyText}>No clients found. Add one!</Text>}
+          contentContainerStyle={clients?.length === 0 ? styles.emptyListContainer : {}}
+        />
+      )}
 
-      <FAB
-        style={styles.fab}
-        icon="plus"
-        onPress={() => navigation.navigate('AddEditClient', {})}
-      />
+      <FAB style={styles.fab} icon="plus" onPress={handleAddNewClient} />
     </View>
   );
 };
 
-// Styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
   },
-  searchBar: {
-    margin: spacing.md,
-    elevation: 2,
-  },
-  listContent: {
-    flexGrow: 1,
-    padding: spacing.md,
-  },
-  card: {
-    marginBottom: spacing.sm,
-    ...shadows.small,
-  },
-  cardContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  avatar: {
-    marginRight: spacing.md,
-  },
-  clientInfo: {
-    flex: 1,
-  },
-  separator: {
-    height: spacing.sm,
+  loader: {
+    marginTop: 20,
   },
   fab: {
     position: 'absolute',
-    margin: spacing.md,
+    margin: 16,
     right: 0,
     bottom: 0,
   },
-  loadingContainer: {
-    flex: 1,
+  emptyListContainer: {
+    flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  loadingText: {
-    marginTop: spacing.md,
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: spacing.lg,
-  },
-  errorText: {
-    color: 'red',
-    textAlign: 'center',
-    marginBottom: spacing.md,
-  },
-  retryButton: {
-    backgroundColor: '#2196F3',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    borderRadius: 4,
-  },
-  retryButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingTop: spacing.xl,
   },
   emptyText: {
-    marginTop: spacing.sm,
-    textAlign: 'center',
-    color: '#757575',
-    paddingHorizontal: spacing.lg,
+    fontSize: 16,
+    color: '#666',
   },
 });
 
